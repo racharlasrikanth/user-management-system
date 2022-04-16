@@ -20,10 +20,17 @@ const errorHandlerMiddleware = require('./middlewares/error-handler');
 
 // rest of packages
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+const fileUpload = require('express-fileupload');
 
 
 // security packages and loggers
 app.use(morgan('tiny'));
+// access data from body
+app.use(express.json());
+app.use(cookieParser(process.env.JWT_SECRET));
+
+app.use(fileUpload());
 
 
 // route middlewares

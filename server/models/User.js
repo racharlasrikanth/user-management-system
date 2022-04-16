@@ -28,6 +28,10 @@ const UserSchema = new mongoose.Schema({
         enum: ['admin', 'user', 'tester'],
         default: 'user',
     },
+    image: {
+        type: String,
+        default: '/uploads/example.jpeg'
+    },
     verificationToken: String,
     isVerified: {
         type: Boolean,
@@ -40,7 +44,7 @@ const UserSchema = new mongoose.Schema({
     passwordTokenExpirationDate: {
         type: Date,
     },
-});
+}, {timestamps: true});
 
 // note: below function should be es-5 because we are using this => it refers current user object
 UserSchema.pre('save', async function() {
