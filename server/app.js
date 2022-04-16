@@ -10,6 +10,11 @@ const app = express();
 const connectDB = require('./database/connect');
 
 
+// middlewares
+const notFoundMiddleware = require('./middlewares/not-found');
+const errorHandlerMiddleware = require('./middlewares/error-handler');
+
+
 // rest of packages
 const morgan = require('morgan');
 
@@ -22,6 +27,10 @@ app.use(morgan('tiny'));
 app.get('/', (req, res) => {
     res.send('Hello');
 })
+
+// middlewares
+app.use(notFoundMiddleware);
+app.use(errorHandlerMiddleware);
 
 
 const PORT = process.env.PORT || 5000;
