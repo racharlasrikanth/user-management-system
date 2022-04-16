@@ -5,9 +5,11 @@ const CustomError = require('./../errors');
 const {
     attachCookiesToResponse,
     sendVerificationEmail,
-    createTokenUser
+    createTokenUser,
+    hashString
 } = require('./../utils');
 const crypto = require('crypto');
+const sendResetPasswordEmail = require('../utils/sendResetPasswordEmail');
 
 const register = async (req, res) => {
 
@@ -155,7 +157,38 @@ const logout = async (req, res) => {
 }
 
 const forgotPassword = async (req, res) => {
-    res.send('forgot password');
+
+    const { email } = req.body;
+
+    if (!email) {
+        throw new CustomError.BadRequestError('Please provide email');
+    }
+
+    const user = await User.findOne({ email });
+
+    if (user) {
+        const passwordToken = crypto.randomBytes(70).toString('hex');
+
+        // after creating passwordToken you can send email for resetpassword
+        const origin = process.env.FRONT_END_ORIGIN;
+        await sendResetPasswordEmail({
+            name: user.name,
+            email: user.email,
+            token: passwordToken,
+            origin
+        })
+
+        const tenMinutes = 1000 * 60 * 10;
+        const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes);
+
+        user.passwordToken = hashString(passwordToken);
+        user.passwordTokenExpirationDate = passwordTokenExpirationDate;
+        await user.save();
+    }
+
+    res.status(StatusCodes.OK).json({
+        message: 'If you are registered with current email you will receive an email for resetting the password, Please check you email'
+    })
 }
 
 const resetPassword = async (req, res) => {
