@@ -192,7 +192,31 @@ const forgotPassword = async (req, res) => {
 }
 
 const resetPassword = async (req, res) => {
-    res.send('reset password')
+
+    const { token, email, password } = req.body;
+
+    if (!token || !email || !password) {
+        throw new CustomError.BadRequestError('Please provide all values');
+    }
+
+    const user = await User.findOne({ email });
+
+    if (user) {
+        const currentDate = Date.now();
+
+        if (user.passwordToken === hashString(token) && user.passwordTokenExpirationDate > currentDate) {
+            user.password = password;
+            user.passwordToken = null;
+            user.passwordTokenExpirationDate = null;
+            await user.save();
+        } else {
+            throw new CustomError.UnAuthenticatedError('Please try to get reset link again or Please login');
+        }
+    }
+
+    res.status(StatusCodes.OK).json({
+        message: "success, redirecting to login page shortly"
+    })
 }
 
 module.exports = {
