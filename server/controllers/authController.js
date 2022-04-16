@@ -49,7 +49,39 @@ const register = async (req, res) => {
 }
 
 const verifyEmail = async (req, res) => {
-    res.send('verify email');
+
+    const { verificationToken, email } = req.body;
+
+    if (!verificationToken || !email) {
+        throw new CustomError.BadRequestError('Please provide verificationToken and email');
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new CustomError.UnAuthenticatedError('Verification failed');
+    }
+
+    if (user.isVerified) {
+        res.status(StatusCodes.OK).json({
+            message: 'already verified',
+        })
+        return;
+    }
+
+    if (user.verificationToken !== verificationToken) {
+        throw new CustomError.UnAuthenticatedError('Verification failed');
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verified = Date.now();
+
+    await user.save();
+
+    res.status(StatusCodes.OK).json({
+        message: "email verified"
+    })
 }
 
 const login = async (req, res) => {
