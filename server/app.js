@@ -9,6 +9,9 @@ const app = express();
 // database
 const connectDB = require('./database/connect');
 
+// routers
+const authRouter = require('./routes/authRoutes');
+const userRouter = require('./routes/userRoutes');
 
 // middlewares
 const notFoundMiddleware = require('./middlewares/not-found');
@@ -27,6 +30,9 @@ app.use(morgan('tiny'));
 app.get('/', (req, res) => {
     res.send('Hello');
 })
+
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', userRouter);
 
 // middlewares
 app.use(notFoundMiddleware);
