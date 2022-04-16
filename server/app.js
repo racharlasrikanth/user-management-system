@@ -14,6 +14,15 @@ const connectDB = require('./database/connect');
 const morgan = require('morgan');
 
 
+// security packages and loggers
+app.use(morgan('tiny'));
+
+
+// route middlewares
+app.get('/', (req, res) => {
+    res.send('Hello');
+})
+
 
 const PORT = process.env.PORT || 5000;
 
