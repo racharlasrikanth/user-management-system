@@ -1,4 +1,4 @@
-import CustomAPIError from "./custom-api";
+const CustomAPIError =  require("./custom-api");
 const { StatusCodes } = require('http-status-codes');
 
 class UnAuthenticatedError extends CustomAPIError {
