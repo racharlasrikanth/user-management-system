@@ -33,7 +33,23 @@ const showCurrentUser = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-    res.send('update user');
+
+    const { email, name, image } = req.body;
+
+    if (!email || !name) {
+        throw new CustomError.BadRequestError('Please provide all values');
+    }
+
+    const user = await User.findOne({ _id:req.user.userId });
+    user.email = email;
+    user.name = name;
+    if (image) user.image = image;
+    await user.save();
+
+    // after changing the user information please update cookie and json web token
+    const tokenUserObj = createTokenUser(user);
+    attachCookiesToResponse({ res, tokenUserObj });
+    res.status(StatusCodes.OK).json({ usre:tokenUserObj });
 }
 
 const updateUserPassword = async (req, res) => {
