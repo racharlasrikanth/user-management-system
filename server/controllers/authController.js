@@ -139,7 +139,19 @@ const login = async (req, res) => {
 }
 
 const logout = async (req, res) => {
-    res.send('logout user');
+    await Token.findOneAndDelete({ user: req.user.userId });
+
+    res.cookie('accessToken', 'logout', {
+        httpOnly: true,
+        expires: new Date(Date.now()),
+    })
+
+    res.cookie('refreshToken', 'logout', {
+        httpOnly: true,
+        expires: new Date(Date.now()),
+    })
+
+    res.status(StatusCodes.OK).json({ message:'user logged out' });
 }
 
 const forgotPassword = async (req, res) => {
