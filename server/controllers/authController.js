@@ -4,7 +4,8 @@ const { StatusCodes } = require('http-status-codes');
 const CustomError = require('./../errors');
 const {
     attachCookiesToResponse,
-    sendVerificationEmail
+    sendVerificationEmail,
+    createTokenUser
 } = require('./../utils');
 const crypto = require('crypto');
 
@@ -85,7 +86,56 @@ const verifyEmail = async (req, res) => {
 }
 
 const login = async (req, res) => {
-    res.send('login user');
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        throw new CustomError.UnAuthenticatedError('Please provide email and password');
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new CustomError.UnAuthenticatedError('Invalid Credentials, try with diffrent user');
+    }
+
+    const isPasswordCorrect = await user.comparePassword(password);
+    if (!isPasswordCorrect) {
+        throw new CustomError.UnAuthenticatedError('Invalid Credentials');
+    }
+
+    if (!user.isVerified) {
+        throw new CustomError.UnAuthenticatedError('Please verify your email');
+    }
+
+    // if everyting is good, create cookie and set it in response object
+    const tokenUserObj = createTokenUser(user);
+
+    // create refresh token
+    let refreshToken = '';
+
+    // check for existing token
+    const existingToken = await Token.findOne({ user:user._id });
+
+    if (existingToken) {
+        const { isValid } = existingToken;
+        if (!isValid) {
+            throw new CustomError.UnAuthenticatedError('Invalid Credentials');
+        }
+        refreshToken = existingToken.refreshToken;
+        attachCookiesToResponse({ res, user:tokenUserObj, refreshToken });
+        res.status(StatusCodes.OK).json({ user:tokenUserObj });
+        return;
+    }
+
+    refreshToken = crypto.randomBytes(40).toString('hex');
+    const userAgent = req.headers['user-agent'];
+    const ipAddress = req.ip;
+    const userToken = { refreshToken, ipAddress, userAgent, user:user._id };
+    await Token.create(userToken);
+
+    attachCookiesToResponse({ res, user:tokenUserObj, refreshToken });
+
+    res.status(StatusCodes.OK).json({ user:tokenUserObj });
 }
 
 const logout = async (req, res) => {
