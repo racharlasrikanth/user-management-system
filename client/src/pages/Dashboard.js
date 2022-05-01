@@ -4,16 +4,19 @@ import { useGlobalContext } from "./../context";
 const Dashboard = () => {
 
   const { user } = useGlobalContext();
-  const { name, userId, role } = user;
+  const { name, userId, role, email } = user;
 
   return (
     <Wrapper className="page">
-      <h2>Hello there, {name}</h2>
+      <h2>Hello, {name} - hope you are doing well😍</h2>
       <p>
         Your ID : <span>{userId}</span>
       </p>
       <p>
         Your Role: <span>{role}</span>
+      </p>
+      <p>
+        Your Email: <span>{email}</span>
       </p>
     </Wrapper>
   )
